@@ -1,0 +1,1194 @@
+==========================AddFragment.java===========================
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
+import android.os.Bundle;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+
+import java.util.ArrayList;
+import java.util.zip.Inflater;
+
+@SuppressLint("ValidFragment")
+public class AddFragment extends Fragment {
+
+    ArrayList<Country> Countries;
+    dbService Service;
+
+    @SuppressLint("ValidFragment")
+    public AddFragment(ArrayList<Country> countries,dbService Service) {
+        Countries = countries;
+        this.Service = Service;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_add,container,false);
+
+        Button btnAddNewItem = (Button) view.findViewById(R.id.btnAddNewItem);
+
+        EditText etCountry = (EditText) view.findViewById(R.id.Name);
+        EditText etCapital = (EditText) view.findViewById(R.id.Capital);
+        EditText etNumber = (EditText) view.findViewById(R.id.Number);
+        CheckBox cbFlag = (CheckBox) view.findViewById(R.id.Flag);
+
+        btnAddNewItem.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void onClick(View view) {
+
+                ContentValues cv = new ContentValues();
+                SQLiteDatabase db = Service.getWritableDatabase();
+
+                cv.put("name",etCountry.getText().toString());
+                cv.put("capital",etCapital.getText().toString());
+                cv.put("number",Integer.parseInt(etNumber.getText().toString()));
+                cv.put("flag",1);
+
+                long rowId= db.insert("mytable", null, cv);
+
+                Countries.add(new Country(Math.toIntExact(rowId),
+                        etCountry.getText().toString(),
+                        etCapital.getText().toString(),
+                        Integer.parseInt(etNumber.getText().toString()),
+                        cbFlag.isChecked()));
+                ((MainActivity)getActivity()).UpdateList();
+            }
+        });
+        return view;
+
+    }
+}
+
+=========================fragment_add.xml==============================
+
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/FragmentAdd"
+    tools:context=".AddFragment">
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/Name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:hint="@string/Country"
+                android:textSize="20sp">
+            </EditText>
+            <EditText
+                android:id="@+id/Capital"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:hint="@string/Capital"
+                android:textSize="20sp">
+            </EditText>
+            <EditText
+                android:id="@+id/Number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:hint="@string/Number"
+                android:textSize="20sp">
+            </EditText>
+            <CheckBox
+                android:id="@+id/Flag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+            </CheckBox>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnAddNewItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btnAddNewItem">
+        </Button>
+
+    </LinearLayout>
+
+</FrameLayout>
+
+===============================Country.java==============================
+
+import java.io.Serializable;
+
+public class Country implements Serializable {
+    private int Id;
+    private String Name;
+    private String Capital;
+    private Integer Number;
+    private boolean flag;
+
+    public Country(int id, String name, String capital, Integer number, boolean flag) {
+        Id = id;
+        Name = name;
+        Capital = capital;
+        Number = number;
+        this.flag = flag;
+    }
+
+    public Country(String Name, String Capital, Integer Number, boolean flag){
+        this.Name = Name;
+        this.Capital = Capital;
+        this.Number = Number;
+        this.flag = flag;
+    }
+
+    public int getId() {
+        return Id;
+
+    }
+    public String getIdString(){
+        return String.valueOf(Id);
+    }
+    public void setId(int id) {
+        Id = id;
+    }
+
+    public Integer getNumber() {
+        return Number;
+    }
+
+    public void setNumber(Integer number) {
+        Number = number;
+    }
+
+    public boolean isFlag() {
+        return flag;
+    }
+
+    public void setFlag(boolean flag) {
+        this.flag = flag;
+    }
+
+    public String getName() {
+        return this.Name;
+    }
+
+    public void setName(String name) {
+        Name = name;
+    }
+
+    public String getCapital() {
+        return Capital;
+    }
+
+    public void setCapital(String capital) {
+        Capital = capital;
+    }
+
+    @Override
+    public String toString() {
+        return "Country{" +
+                "Name='" + Name + '\'' +
+                ", Capital='" + Capital + '\'' +
+                '}';
+    }
+}
+
+=====================CountryAdapter.java=================
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.TextView;
+
+import java.util.List;
+
+// Класс для списка с нужными нам полями и xml для него в папке layout list_item
+
+public class CountryAdapter extends ArrayAdapter<Country> {
+    private LayoutInflater inflater;
+    private int layout;
+    private List<Country> Countries;
+
+    public CountryAdapter(Context context, int resource, List<Country> Countries) {
+        super(context, resource, Countries);
+        this.Countries = Countries;
+        this.layout = resource;
+        this.inflater = LayoutInflater.from(context);
+    }
+
+    public View getView(int position, View convertView, ViewGroup parent) {
+        @SuppressLint("ViewHolder") View view=inflater.inflate(this.layout, parent, false);
+        TextView nameView = (TextView) view.findViewById(R.id.Name);
+        TextView capitalView = (TextView) view.findViewById(R.id.Capital);
+        TextView number = (TextView) view.findViewById(R.id.Number);
+        CheckBox checkBox = (CheckBox) view.findViewById(R.id.Flag);
+
+        Country state = Countries.get(position);
+
+        nameView.setText(state.getName());
+        capitalView.setText(state.getCapital());
+        number.setText(String.valueOf(state.getNumber()));
+        checkBox.setChecked(state.isFlag());
+
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (compoundButton.isChecked()){
+                    state.setFlag(true);
+                }
+                else {
+                    state.setFlag(false);
+                }
+            }
+        });
+
+        return view;
+    }
+}
+
+======================dbService.java===================
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class dbService extends SQLiteOpenHelper {
+    final String LOG_TAG = "myLogs";
+
+    public dbService(Context context) {
+        super(context, "myDB", null, 1);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        // создаем таблицу с полями
+        db.execSQL("create table mytable ("
+                + "id integer primary key autoincrement,"
+                + "name text,"
+                + "capital text,"
+                + "number integer,"
+                + "flag integer"
+                + ");");
+
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int i, int i1) {
+        onCreate(db);
+    }
+}
+
+=================MainActivity.java=============
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    ArrayList<Country> Countries = new ArrayList();
+    ArrayAdapter<Country> adapter;
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    dbService Service;
+    EditText searchField;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //
+        Service = new dbService(this);
+
+        SQLiteDatabase db = Service.getWritableDatabase();
+        Cursor c = db.query("mytable", null, null, null, null, null, null);
+
+        while (c.moveToNext()) {
+            Countries.add(new Country(c.getInt(0),c.getString(1), c.getString(2), c.getInt(3), false));
+        }
+        //db.delete("mytable",null,null);
+        //Для списка....
+        ListView lvMain = (ListView) findViewById(R.id.lvSearch);
+        lvMain.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        adapter = new CountryAdapter(this, R.layout.list_item, Countries);
+        lvMain.setAdapter(adapter);
+        //Для кнопок...
+        Button btnAddFragment = (Button) findViewById(R.id.btnAddFragment);
+        Button btnUpdateFragment = (Button) findViewById(R.id.btnUpdateFragment);
+        Button btnSearch = (Button) findViewById(R.id.btnSearch);
+        btnSearch.setOnClickListener(this);
+        Button btnSaveJson = (Button) findViewById(R.id.btnSaveJSON);
+        Button btnLoadJson = (Button) findViewById(R.id.btnLoadJSON);
+        //
+        searchField = (EditText) findViewById(R.id.TextSearch);
+        //
+        //
+        btnAddFragment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment addFragment = new AddFragment(Countries, Service);
+                FragmentTransaction ft = fragmentManager.beginTransaction();
+                assert addFragment != null;
+                ft.replace(R.id.frame, addFragment);
+                ft.commit();
+            }
+        });
+        btnUpdateFragment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int position = -1;
+                for (int i = 0; i < Countries.size(); i++) {
+                    if (Countries.get(i).isFlag()) {
+                        position = i;
+                        break;
+                    }
+                }
+                if (position != -1) {
+                    Fragment updateFragment = new UpdateFragment(Countries, position, Service);
+                    FragmentTransaction ft = fragmentManager.beginTransaction();
+                    assert updateFragment != null;
+                    ft.replace(R.id.frame, updateFragment);
+                    ft.commit();
+                }
+
+            }
+        });
+        btnSaveJson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveData();
+            }
+        });
+        btnLoadJson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadData();
+            }
+        });
+
+    }
+
+    //действия на кнопках
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            // Фильтрация и отчет
+            case R.id.btnSearch:
+                Intent intent = new Intent(this, SearchActivity.class);
+                //поиск по совпадению(слово)
+//                ArrayList<Country> search = new ArrayList<Country>();
+//                for( int i = 0;i<Countries.size();i++){
+//                    if(Countries.get(i).getName().equals(searchField.getText().toString())){
+//                        search.add(Countries.get(i));
+//                    }
+//                }
+                //поиск по чекбоксам
+                ArrayList<Country> search = new ArrayList<Country>();
+                for (int i = 0; i < Countries.size(); i++) {
+                    if (Countries.get(i).isFlag()) {
+                        search.add(Countries.get(i));
+                    }
+                }
+                //
+                intent.putExtra("MyClass", search);
+                startActivity(intent);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void saveData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(Countries);
+        editor.putString("task list", json);
+        editor.apply();
+    }
+
+    public void loadData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("task list", null);
+        Type type = new TypeToken<ArrayList<Country>>() {}.getType();
+        ArrayList<Country> Temp = gson.fromJson(json, type);
+        Countries.clear();
+        Countries.addAll(Temp);
+        if (Countries == null) {
+            Countries = new ArrayList<>();
+        }
+        UpdateList();
+    }
+
+
+
+
+    public void UpdateList() {
+        adapter.notifyDataSetChanged();
+    }
+}
+
+====================activity_main.xml======================
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp">
+
+        </FrameLayout>
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <EditText
+                    android:id="@+id/TextSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName" />
+
+                <Button
+                    android:id="@+id/btnSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btnSearch" />
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/btnUpdateFragment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/UpdateItem" />
+
+                <Button
+                    android:id="@+id/btnAddFragment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/AddItemInItems" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <Button
+                    android:id="@+id/btnLoadJSON"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Button" />
+
+                <Button
+                    android:id="@+id/btnSaveJSON"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btnSaveJSON" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </TableLayout>
+
+        <ListView
+            android:id="@+id/lvSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="300dp" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
+
+===============list_item.xml=================
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="TextView"
+            android:textSize="20sp"></TextView>
+        <TextView
+            android:id="@+id/Capital"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="TextView"
+            android:textSize="20sp">
+        </TextView>
+        <TextView
+            android:id="@+id/Number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="TextView"
+            android:textSize="20sp">
+        </TextView>
+        <CheckBox
+            android:id="@+id/Flag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </CheckBox>
+    </LinearLayout>
+</LinearLayout>
+
+=======================activity_search.xml=======================
+//Создать в ручную через Activity - Empty activity
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SearchActivity">
+
+    <ListView
+        android:id="@+id/lvSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp" />
+</android.support.constraint.ConstraintLayout>
+
+
+
+===============SearchActivity.java==================
+
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+
+public class SearchActivity extends AppCompatActivity {
+
+    ArrayAdapter<Country> adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search);
+        ArrayList<Country> countries = (ArrayList<Country>) getIntent().getSerializableExtra("MyClass");
+        ListView lvSearch = (ListView) findViewById(R.id.lvSearch);
+        adapter = new CountryAdapter(this,R.layout.list_item, countries);
+        lvSearch.setAdapter(adapter);
+    }
+}
+
+===============fragment_update.xml================
+
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".UpdateFragment">
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/UpdateName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:hint="@string/Country"
+                android:textSize="20sp">
+            </EditText>
+            <EditText
+                android:id="@+id/UpdateCapital"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:hint="@string/Capital"
+                android:textSize="20sp">
+            </EditText>
+            <EditText
+                android:id="@+id/UpdateNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:hint="@string/Number"
+                android:textSize="20sp">
+            </EditText>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnUpdateItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btnChange">
+        </Button>
+
+    </LinearLayout>
+
+</FrameLayout>
+
+==============UpdateFragment.java================
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import java.security.Provider;
+import java.util.ArrayList;
+
+@SuppressLint("ValidFragment")
+public class UpdateFragment extends Fragment {
+
+    ArrayList<Country> countries;
+    Integer position;
+    dbService Service;
+
+    @SuppressLint("ValidFragment")
+    public UpdateFragment(ArrayList<Country> countries, Integer position, dbService Service) {
+        this.countries = countries;
+        this.position = position;
+        this.Service = Service;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_update, container, false);
+
+        Button btnUpdateItem = (Button) view.findViewById(R.id.btnUpdateItem);
+
+        EditText etCountry = (EditText) view.findViewById(R.id.UpdateName);
+        EditText etCapital = (EditText) view.findViewById(R.id.UpdateCapital);
+        EditText etNumber = (EditText) view.findViewById(R.id.UpdateNumber);
+
+        etCountry.setText(countries.get(position).getName());
+        etCapital.setText(countries.get(position).getCapital());
+        etNumber.setText(countries.get(position).getNumber().toString());
+
+        btnUpdateItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues cv = new ContentValues();
+                SQLiteDatabase db = Service.getWritableDatabase();
+                countries.get(position).setName(etCountry.getText().toString());
+                countries.get(position).setCapital(etCapital.getText().toString());
+                countries.get(position).setNumber(Integer.parseInt(etNumber.getText().toString()));
+                countries.get(position).setFlag(false);
+
+                cv.put("name", etCountry.getText().toString());
+                cv.put("capital", etCapital.getText().toString());
+                cv.put("number", Integer.parseInt(etNumber.getText().toString()));
+                cv.put("flag", 1);
+                db.update("mytable", cv, "id = ?", new String[]{countries.get(position).getIdString()});
+                ((MainActivity) getActivity()).UpdateList();
+            }
+        });
+        // Inflate the layout for this fragment
+        return view;
+    }
+}
+
+=================Strings.xml============
+
+<resources>
+    <string name="app_name">Gossssss</string>
+    <string name="btnAddNewItem">Add</string>
+    <string name="btnChange">Change</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="Country">Country</string>
+    <string name="Capital">Capital</string>
+    <string name="Number">Number</string>
+    <string name="AddItemInItems">AddItemInItems</string>
+    <string name="UpdateItem">UpdateItem</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="btnSaveToDatabase">Save In Database</string>
+    <string name="btnSearch">Search</string>
+    <string name="btnSaveJSON">Save Json</string>
+    <string name="btnLoadJson">Load Json</string>
+
+</resources>
+
+============strings.xml ru=============
+//делать ручками через добавления языка по нажатию на планетку
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gossssss</string>
+    <string name="btnAddNewItem">Добавить</string>
+    <string name="btnChange">Изменить</string>
+    <string name="Country">Страна</string>
+    <string name="Capital">Столица</string>
+    <string name="Number">Число</string>
+    <string name="AddItemInItems">Добавление</string>
+    <string name="UpdateItem">Изменить</string>
+    <string name="btnSaveToDatabase">Сохранить в базу данных</string>
+    <string name="btnSearch">Отчет</string>
+    <string name="btnSaveJSON">Сохранить в Json</string>
+    <string name="btnLoadJson">Загрузить из Json</string>
+</resources>
+============Gradle===========
+//искать файл где есть похожие строки
+
+
+    implementation 'com.google.code.gson:gson:2.9.0'
+
+==============activity_main.xml (land)=========
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp">
+
+        </FrameLayout>
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <EditText
+                    android:id="@+id/TextSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <Button
+                    android:id="@+id/btnSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btnSearch" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/btnLoadJSON"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btnLoadJson" />
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/btnAddFragment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/AddItemInItems" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/btnSaveJSON"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btnSaveJSON" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <Button
+                    android:id="@+id/btnUpdateFragment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/UpdateItem" />
+            </TableRow>
+        </TableLayout>
+
+        <ListView
+            android:id="@+id/lvSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
+
+============activity_search.xml (land)========
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SearchActivity">
+
+    <ListView
+        android:id="@+id/lvSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp" />
+</android.support.constraint.ConstraintLayout>
+
+===============Если нужна загрузка из json файла именно созданного===========
+ПКМ на папку app app > right-click > New > Folder > Asset Folder после создания папки создаем там файл data.json
+
+=========пример data.json=============
+{"data":[{"Capital":"xsxs",
+  "Id": 5,
+  "Name": "rrrr",
+  "Number": 12,
+  "flag": false
+},{"Capital":"xsxs",
+  "Id": 5,
+  "Name": "rrrr",
+  "Number": 12,
+  "flag": false}
+]}
+====переделка mainActivity для json из файла============
+package com.example.gossssss;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    ArrayList<Country> Countries = new ArrayList();
+    ArrayAdapter<Country> adapter;
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    dbService Service;
+    EditText searchField;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //
+        Service = new dbService(this);
+
+        SQLiteDatabase db = Service.getWritableDatabase();
+        Cursor c = db.query("mytable", null, null, null, null, null, null);
+
+        while (c.moveToNext()) {
+            Countries.add(new Country(c.getInt(0),c.getString(1), c.getString(2), c.getInt(3), false));
+        }
+        //db.delete("mytable",null,null);
+        //Для списка....
+        ListView lvMain = (ListView) findViewById(R.id.lvSearch);
+        lvMain.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        adapter = new CountryAdapter(this, R.layout.list_item, Countries);
+        lvMain.setAdapter(adapter);
+        //Для кнопок...
+        Button btnAddFragment = (Button) findViewById(R.id.btnAddFragment);
+        Button btnUpdateFragment = (Button) findViewById(R.id.btnUpdateFragment);
+        Button btnSearch = (Button) findViewById(R.id.btnSearch);
+        btnSearch.setOnClickListener(this);
+        Button btnSaveJson = (Button) findViewById(R.id.btnSaveJSON);
+        Button btnLoadJson = (Button) findViewById(R.id.btnLoadJSON);
+        //
+        searchField = (EditText) findViewById(R.id.TextSearch);
+        //
+        //
+        btnAddFragment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment addFragment = new AddFragment(Countries, Service);
+                FragmentTransaction ft = fragmentManager.beginTransaction();
+                assert addFragment != null;
+                ft.replace(R.id.frame, addFragment);
+                ft.commit();
+            }
+        });
+        btnUpdateFragment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int position = -1;
+                for (int i = 0; i < Countries.size(); i++) {
+                    if (Countries.get(i).isFlag()) {
+                        position = i;
+                        break;
+                    }
+                }
+                if (position != -1) {
+                    Fragment updateFragment = new UpdateFragment(Countries, position, Service);
+                    FragmentTransaction ft = fragmentManager.beginTransaction();
+                    assert updateFragment != null;
+                    ft.replace(R.id.frame, updateFragment);
+                    ft.commit();
+                }
+
+            }
+        });
+        btnSaveJson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveData();
+            }
+        });
+        btnLoadJson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    JSONObject object = new JSONObject(readJSON());
+                    JSONArray jsonArrayNames = object.getJSONArray("data");
+                    Countries.clear();
+                    for(int i = 0; i < jsonArrayNames.length(); i++){
+                        Countries.add(new Country(jsonArrayNames.getJSONObject(i).getString("Name"),
+                                jsonArrayNames.getJSONObject(i).getString("Capital"),
+                                jsonArrayNames.getJSONObject(i).getInt("Number"),
+                                jsonArrayNames.getJSONObject(i).getBoolean("flag")));
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                //loadData();
+                UpdateList();
+            }
+        });
+
+    }
+
+    //действия на кнопках
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            // Фильтрация и отчет
+            case R.id.btnSearch:
+                Intent intent = new Intent(this, SearchActivity.class);
+                //поиск по совпадению(слово)
+//                ArrayList<Country> search = new ArrayList<Country>();
+//                for( int i = 0;i<Countries.size();i++){
+//                    if(Countries.get(i).getName().equals(searchField.getText().toString())){
+//                        search.add(Countries.get(i));
+//                    }
+//                }
+                //поиск по чекбоксам
+                ArrayList<Country> search = new ArrayList<Country>();
+                for (int i = 0; i < Countries.size(); i++) {
+                    if (Countries.get(i).isFlag()) {
+                        search.add(Countries.get(i));
+                    }
+                }
+                //
+                intent.putExtra("MyClass", search);
+                startActivity(intent);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void saveData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(Countries);
+        editor.putString("task list", json);
+        editor.apply();
+    }
+
+    public void loadData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("task list", null);
+        Type type = new TypeToken<ArrayList<Country>>() {}.getType();
+        ArrayList<Country> Temp = gson.fromJson(json, type);
+        Countries.clear();
+        Countries.addAll(Temp);
+        if (Countries == null) {
+            Countries = new ArrayList<>();
+        }
+        UpdateList();
+    }
+
+
+
+
+    public void UpdateList() {
+        adapter.notifyDataSetChanged();
+    }
+
+    public String readJSON() {
+        String json = null;
+        try {
+            // Opening data.json file
+            InputStream inputStream = getAssets().open("data.json");
+            int size = inputStream.available();
+            byte[] buffer = new byte[size];
+            // read values in the byte array
+            inputStream.read(buffer);
+            inputStream.close();
+            // convert byte to string
+            json = new String(buffer, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return json;
+        }
+        return json;
+    }
+}
